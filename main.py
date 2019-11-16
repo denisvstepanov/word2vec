@@ -1,5 +1,7 @@
 import numpy as np
 
+from datetime import datetime
+
 from typing import Dict, Any, Tuple, List, NamedTuple, Set
 
 from pathlib import Path
@@ -15,11 +17,22 @@ from torch.utils.data import Dataset, DataLoader
 from torch.multiprocessing.spawn import spawn
 import torch.distributed as distrib
 
+from tensorboardX import SummaryWriter
+
 from torch import Tensor
 from torch.optim import Adam
 
 
 from nltk.corpus import stopwords
+
+LOG_DIR = Path.home() / 'train_logs'
+
+
+def prepare_log_dir(model_name: str, base_dir=LOG_DIR):
+    now = datetime.now()
+    log_dir = base_dir / f'{model_name}-{now:%Y%m%d-%H%M-%S}'
+    log_dir.mkdir(parents=True)
+    return log_dir
 
 
 def exclude_stop_words(words: List[str]):
@@ -134,9 +147,15 @@ def parse_batch(batch, device) -> Tuple[Tensor, Tensor]:
     return center_word.repeat_interleave(seq_len).to(device), context_words.view(1, -1).to(device)
 
 
+def normalize_step(batch_num: int, batches: int, epoch: int, base: int = 1000):
+    return batch_num * base // batches + base * epoch
+
+
 def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
     fix_seed(42)
     device = choose_device()
+    log_dir = prepare_log_dir(model_name='word2vec')
+    writer = SummaryWriter(log_dir=str(log_dir))
 
     data, text_processor = Word2VecDataset.from_path(file_name, context_size=5)
     model = Word2Vec(emb_size=emb_size, vocab_size=text_processor.vocab_size)
@@ -146,8 +165,10 @@ def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
     losses = []
     for epoch in range(epochs):
         data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
+        total_batches = len(data_loader)
         model.train()
         for batch_no, batch in enumerate(tqdm(data_loader, ncols=40, desc=f'Epoch {epoch}')):
+            norm_step = normalize_step(batch_no, total_batches, epoch)
             optimizer.zero_grad()
             center_word, context_words = parse_batch(batch, device)
             log_probs = model(context_words)
@@ -155,7 +176,9 @@ def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
             loss.backward()
             optimizer.step()
             losses.append(loss.item())
+            writer.add_scalar('main/loss', loss.item(), global_step=norm_step)
         save_model(Path('model'), epoch, model)
+
     return losses
 
 
