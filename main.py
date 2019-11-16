@@ -160,7 +160,6 @@ def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
     model.to(device)
     optimizer = Adam(model.parameters(), lr=1e-4)
     loss_function = nn.CrossEntropyLoss()
-    losses = []
     for epoch in range(epochs):
         data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
         total_batches = len(data_loader)
@@ -173,11 +172,9 @@ def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
             loss = loss_function(log_probs, center_word)
             loss.backward()
             optimizer.step()
-            losses.append(loss.item())
             writer.add_scalar('main/loss', loss.item(), global_step=norm_step)
         save_model(Path('model'), epoch, model)
 
-    return losses
 
 
 def save_model(log_dir: Path, epoch: int, model: nn.Module) -> None:
