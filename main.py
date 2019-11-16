@@ -159,7 +159,7 @@ def train_model(emb_size=300, epochs=50, batch_size=100, file_name='got.txt'):
     data, text_processor = Word2VecDataset.from_path(file_name, context_size=10)
     model = Word2Vec(emb_size=emb_size, vocab_size=text_processor.vocab_size)
     model.to(device)
-    optimizer = Adam(model.parameters(), lr=1e-4)
+    optimizer = Adam(model.parameters(), lr=1e-5)
     loss_function = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
