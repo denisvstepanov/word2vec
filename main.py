@@ -164,6 +164,7 @@ def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
     for epoch in range(epochs):
         data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
         total_batches = len(data_loader)
+        total_loss = 0
         model.train()
         for batch_no, batch in enumerate(tqdm(data_loader, ncols=40, desc=f'Epoch {epoch}')):
             norm_step = normalize_step(batch_no, total_batches, epoch)
@@ -174,7 +175,9 @@ def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
             loss.backward()
             optimizer.step()
             writer.add_scalar('main/loss', loss.item(), global_step=norm_step)
+            total_loss += loss.item()
         save_model(Path('model'), epoch, model)
+        print(f'Loss: {total_loss / total_batches}')
 
 
 def save_model(log_dir: Path, epoch: int, model: nn.Module) -> None:
