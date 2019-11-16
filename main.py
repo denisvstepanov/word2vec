@@ -22,7 +22,7 @@ from tensorboardX import SummaryWriter
 from torch import Tensor
 from torch.optim import Adam
 
-
+import nltk
 from nltk.corpus import stopwords
 
 LOG_DIR = Path.home() / 'train_logs'
@@ -194,6 +194,8 @@ def save_model(log_dir: Path, epoch: int, model: nn.Module) -> None:
 
 
 if __name__ == '__main__':
+    nltk.download('stopwords')
+    nltk.download('punkt')
     if distrib.is_available():
         spawn(train_model)
     else:
