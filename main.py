@@ -176,7 +176,6 @@ def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
         save_model(Path('model'), epoch, model)
 
 
-
 def save_model(log_dir: Path, epoch: int, model: nn.Module) -> None:
     model_path = log_dir / f'model-{epoch}'
     print(f'Saving model to {str(model_path)} ...')
