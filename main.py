@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from datetime import datetime
@@ -179,7 +180,8 @@ def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
 def save_model(log_dir: Path, epoch: int, model: nn.Module) -> None:
     model_path = log_dir / f'model-{epoch}'
     print(f'Saving model to {str(model_path)} ...')
-
+    if not os.path.exists(str(log_dir)):
+        os.makedirs('model')
     with model_path.open('bw') as f:
         torch.save({
             'module': model.state_dict()
