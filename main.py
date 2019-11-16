@@ -150,13 +150,13 @@ def normalize_step(batch_num: int, batches: int, epoch: int, base: int = 1000):
     return batch_num * base // batches + base * epoch
 
 
-def train_model(emb_size=100, epochs=10, batch_size=100, file_name='got.txt'):
+def train_model(emb_size=300, epochs=50, batch_size=100, file_name='got.txt'):
     fix_seed(42)
     device = choose_device()
     log_dir = prepare_log_dir(model_name='word2vec')
     writer = SummaryWriter(log_dir=str(log_dir))
 
-    data, text_processor = Word2VecDataset.from_path(file_name, context_size=5)
+    data, text_processor = Word2VecDataset.from_path(file_name, context_size=10)
     model = Word2Vec(emb_size=emb_size, vocab_size=text_processor.vocab_size)
     model.to(device)
     optimizer = Adam(model.parameters(), lr=1e-4)
