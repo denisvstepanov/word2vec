@@ -14,8 +14,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
-from torch.multiprocessing.spawn import spawn
-import torch.distributed as distrib
 
 from tensorboardX import SummaryWriter
 
@@ -196,7 +194,4 @@ def save_model(log_dir: Path, epoch: int, model: nn.Module) -> None:
 if __name__ == '__main__':
     nltk.download('stopwords')
     nltk.download('punkt')
-    if distrib.is_available():
-        spawn(train_model)
-    else:
-        train_model()
+    train_model()
