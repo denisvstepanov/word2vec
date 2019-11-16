@@ -193,12 +193,8 @@ def save_model(log_dir: Path, epoch: int, model: nn.Module) -> None:
     print('Done')
 
 
-def run_word2vec() -> None:
-    train_model()
-
-
 if __name__ == '__main__':
     if distrib.is_available():
-        spawn(run_word2vec)
+        spawn(train_model)
     else:
-        run_word2vec()
+        train_model()
