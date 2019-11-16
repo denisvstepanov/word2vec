@@ -176,6 +176,6 @@ def run_word2vec() -> None:
 
 if __name__ == '__main__':
     if distrib.is_available():
-        spawn(run_word2vec, args=[torch.cuda.device_count()], nprocs=torch.cuda.device_count())
+        spawn(run_word2vec)
     else:
         run_word2vec()
