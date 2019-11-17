@@ -161,7 +161,7 @@ def train_model(emb_size=300, epochs=50, batch_size=100, file_name='got.txt'):
     model = Word2Vec(emb_size=emb_size, vocab_size=text_processor.vocab_size)
     model.to(device)
     optimizer = Adam(model.parameters(), lr=1e-5)
-    scheduler = StepLR(optimizer, step_size=1, gamma=0.1, last_epoch=epochs)
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.1)
 
     loss_function = nn.CrossEntropyLoss()
     for epoch in range(epochs):
@@ -177,9 +177,9 @@ def train_model(emb_size=300, epochs=50, batch_size=100, file_name='got.txt'):
             loss = loss_function(log_probs, center_word)
             loss.backward()
             optimizer.step()
-            scheduler.step()
             writer.add_scalar('main/loss', loss.item(), global_step=norm_step)
             total_loss += loss.item()
+        scheduler.step()
         save_model(Path('model'), epoch, model)
         print(f'Loss: {total_loss / total_batches}')
 
