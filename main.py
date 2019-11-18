@@ -99,16 +99,18 @@ class Word2VecDataset(Dataset):
 
 
 class Word2Vec(nn.Module):
-    def __init__(self, emb_size, vocab_size):
+    def __init__(self, emb_size, vocab_size, hidden_size=20):
         super(Word2Vec, self).__init__()
         self.emb = nn.Embedding(vocab_size, emb_size)
-        self.linear = nn.Linear(emb_size, vocab_size)
+        self.linear1 = nn.Linear(emb_size, hidden_size)
+        self.linear2 = nn.Linear(hidden_size, vocab_size)
         self._reset_parameters()
 
     def forward(self, context_word):
         emb = self.emb(context_word)
-        hidden = self.linear(emb)
-        return F.log_softmax(hidden, dim=-1).squeeze()
+        hidden = self.linear1(emb)
+        out = self.linear2(hidden)
+        return F.log_softmax(out, dim=-1).squeeze()
 
     def _reset_parameters(self):
         for p in self.parameters():
