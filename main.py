@@ -148,11 +148,11 @@ def parse_batch_skip_gram(batch, device) -> Tuple[Tensor, Tensor]:
     return center_word.repeat_interleave(seq_len).to(device), context_words.view(1, -1).to(device)
 
 
-def parse_batch_cbow(batch, device) -> Tuple[Tensor, List[Tensor]]:
+def parse_batch_cbow(batch, device) -> Tuple[Tensor, Tensor]:
     center_word = batch.center_word
     context_words = batch.context_words
-    context_words = [context_word.to(device) for context_word in context_words]
-    return center_word.to(device), context_words
+    context_words = torch.stack(context_words, dim=-1)
+    return center_word.to(device), context_words.view(1, -1).to(device)
 
 
 def normalize_step(batch_num: int, batches: int, epoch: int, base: int = 1000):
