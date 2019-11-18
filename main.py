@@ -107,7 +107,7 @@ class Word2Vec(nn.Module):
 
     def forward(self, context_word):
         emb = self.emb(context_word)
-        emb = emb.mean(dim=0)
+        emb = emb.mean(dim=1).squeeze()
         hidden = self.linear(emb)
         return F.log_softmax(hidden, dim=-1).squeeze()
 
@@ -152,7 +152,7 @@ def parse_batch_cbow(batch, device) -> Tuple[Tensor, Tensor]:
     center_word = batch.center_word
     context_words = batch.context_words
     context_words = torch.stack(context_words, dim=-1)
-    return center_word.to(device), context_words.view(1, -1).to(device)
+    return center_word.to(device), context_words.to(device)
 
 
 def normalize_step(batch_num: int, batches: int, epoch: int, base: int = 1000):
@@ -171,7 +171,7 @@ def train_model(emb_size=300, epochs=50, batch_size=100, file_name='got.txt'):
     optimizer = Adam(model.parameters(), lr=1e-3)
     scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 
-    loss_function = nn.CrossEntropyLoss()
+    loss_function = nn.NLLLoss()
     for epoch in range(epochs):
         data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
         total_batches = len(data_loader)
