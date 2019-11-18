@@ -99,19 +99,17 @@ class Word2VecDataset(Dataset):
 
 
 class Word2Vec(nn.Module):
-    def __init__(self, emb_size, vocab_size, hidden_size=20):
+    def __init__(self, emb_size, vocab_size):
         super(Word2Vec, self).__init__()
         self.emb = nn.Embedding(vocab_size, emb_size)
-        self.linear1 = nn.Linear(emb_size, hidden_size)
-        self.linear2 = nn.Linear(hidden_size, vocab_size)
+        self.linear = nn.Linear(emb_size, vocab_size)
         self._reset_parameters()
 
     def forward(self, context_word):
         emb = self.emb(context_word)
-        hidden = self.linear1(emb)
-        hidden = F.relu(hidden)
-        out = self.linear2(hidden)
-        return F.log_softmax(out, dim=-1).squeeze()
+        emb = emb.mean(dim=0)
+        hidden = self.linear(emb)
+        return F.log_softmax(hidden, dim=-1).squeeze()
 
     def _reset_parameters(self):
         for p in self.parameters():
@@ -153,9 +151,7 @@ def parse_batch_skip_gram(batch, device) -> Tuple[Tensor, Tensor]:
 def parse_batch_cbow(batch, device) -> Tuple[Tensor, Tensor]:
     center_word = batch.center_word
     context_words = batch.context_words
-    context_words = torch.stack(context_words, dim=-1)
-    batch_size, seq_len = context_words.size()
-    return center_word.repeat_interleave(seq_len).to(device), context_words.view(1, -1).to(device)
+    return center_word.to(device), context_words.to(device)
 
 
 def normalize_step(batch_num: int, batches: int, epoch: int, base: int = 1000):
@@ -183,7 +179,7 @@ def train_model(emb_size=300, epochs=50, batch_size=100, file_name='got.txt'):
         for batch_no, batch in enumerate(tqdm(data_loader, ncols=40, desc=f'Epoch {epoch}')):
             norm_step = normalize_step(batch_no, total_batches, epoch)
             optimizer.zero_grad()
-            center_word, context_words = parse_batch(batch, device)
+            center_word, context_words = parse_batch_cbow(batch, device)
             log_probs = model(context_words)
             loss = loss_function(log_probs, center_word)
             loss.backward()
