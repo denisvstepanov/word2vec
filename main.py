@@ -109,6 +109,7 @@ class Word2Vec(nn.Module):
     def forward(self, context_word):
         emb = self.emb(context_word)
         hidden = self.linear1(emb)
+        hidden = F.relu(hidden)
         out = self.linear2(hidden)
         return F.log_softmax(out, dim=-1).squeeze()
 
@@ -141,7 +142,15 @@ def load_model(log_dir: Path, epoch: int, model: nn.Module) -> nn.Module:
     return model
 
 
-def parse_batch(batch, device) -> Tuple[Tensor, Tensor]:
+def parse_batch_skip_gram(batch, device) -> Tuple[Tensor, Tensor]:
+    center_word = batch.center_word
+    context_words = batch.context_words
+    context_words = torch.stack(context_words, dim=-1)
+    batch_size, seq_len = context_words.size()
+    return center_word.repeat_interleave(seq_len).to(device), context_words.view(1, -1).to(device)
+
+
+def parse_batch_cbow(batch, device) -> Tuple[Tensor, Tensor]:
     center_word = batch.center_word
     context_words = batch.context_words
     context_words = torch.stack(context_words, dim=-1)
