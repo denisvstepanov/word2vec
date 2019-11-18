@@ -169,7 +169,7 @@ def train_model(emb_size=300, epochs=50, batch_size=100, file_name='got.txt'):
     model = Word2Vec(emb_size=emb_size, vocab_size=text_processor.vocab_size)
     model.to(device)
     optimizer = Adam(model.parameters(), lr=1e-3)
-    scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
+    scheduler = StepLR(optimizer, step_size=50, gamma=0.1)
 
     loss_function = nn.NLLLoss()
     for epoch in range(epochs):
